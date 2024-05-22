@@ -1,0 +1,20 @@
+{
+    "name": "rob/bas",
+    "require-dev": {
+        "phpunit/phpunit": "^10.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "Bas\\": "src/"
+        }
+        
+    },
+    "authors": [
+        {
+            "name": "robwigmans",
+            "email": "r.wigmans@tcrmbo.nl"
+        }
+    ],
+    "require": {},
+    "include-path": ["include/"]
+}
