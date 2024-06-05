@@ -1,5 +1,5 @@
 <?php
-// auteur: Amin
+// auteur: Ayoub
 // functie: Class Artikel
 namespace Bas\classes;
 

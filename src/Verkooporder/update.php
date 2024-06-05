@@ -1,5 +1,5 @@
 <?php
-    // auteur: Amin
+    // auteur: Ayoub
     // functie: update class Artikel
 
     // Autoloader classes via composer

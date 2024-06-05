@@ -1,5 +1,5 @@
 <?php
-// Auteur: Amin
+// Auteur: Ayoub
 // Functie: definitie class VerkoopOrder
 namespace Bas\classes;
 
