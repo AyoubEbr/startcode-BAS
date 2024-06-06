@@ -1,5 +1,5 @@
 <!--
-	Auteur: Studentnaam
+	Auteur: Ayoub
 	Function: home page CRUD Klant
 -->
 <!DOCTYPE html>
