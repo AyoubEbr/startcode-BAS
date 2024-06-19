@@ -10,31 +10,26 @@ use Bas\classes\Database;
 include_once "functions.php";
 
 class VerkoopOrder extends Database {
-    public int $verkOrdId;
-    public int $klantId;
-    public int $artId;
-    public string $verkOrdDatum;
-    public int $verkOrdBestAantal;
-    public int $verkOrdStatus;
-    private string $table_name = "VerkoopOrder";   
+    public $verkOrdId;
+    public $klantId;
+    public $artId;
+    public $verkOrdDatum;
+    public $verkOrdBestAantal;
+    public $verkOrdStatus;
+    private $table_name = "VerkoopOrder";   
 
     // Methods
     
     /**
-     * Haal alle verkooporders op uit de database en toon ze in een HTML-tabel.
-     * @return void
+     * Haal alle verkooporders op en toon ze in een HTML-tabel
      */
     public function crudVerkooporder(): void {
-        try {
-            $lijst = $this->getVerkoopOrders();
-            $this->showTable($lijst);
-        } catch (PDOException $e) {
-            echo "Error: " . $e->getMessage();
-        }
+        $lijst = $this->getVerkoopOrders();
+        $this->showTable($lijst);
     }
 
     /**
-     * Haal alle verkooporders op uit de database.
+     * Haal alle verkooporders op uit de database
      * @return array
      */
     public function getVerkoopOrders(): array {
@@ -52,7 +47,7 @@ class VerkoopOrder extends Database {
     }
 
     /**
-     * Haal een specifieke verkooporder op uit de database.
+     * Haal een specifieke verkooporder op basis van verkOrdId
      * @param int $verkOrdId
      * @return array
      */
@@ -72,69 +67,62 @@ class VerkoopOrder extends Database {
             return [];
         }
     }
-
+    
     /**
-     * Toon een dropdown met verkooporders.
+     * Toon een dropdown met verkooporders
      * @param int $row_selected
-     * @return void
      */
     public function dropDownVerkoopOrder(int $row_selected = -1): void {
-        try {
-            $lijst = $this->getVerkoopOrders();
-            $html = "<label for='VerkoopOrder'>Choose a verkooporder:</label>";
-            $html .= "<select name='verkOrdId'>";
-            foreach ($lijst as $row) {
-                $selected = ($row_selected == $row["verkOrdId"]) ? "selected='selected'" : "";
-                $html .= "<option value='{$row['verkOrdId']}' $selected>Order {$row['verkOrdId']}</option>\n";
-            }
-            $html .= "</select>";
-            echo $html;
-        } catch (PDOException $e) {
-            echo "Error: " . $e->getMessage();
+        $lijst = $this->getVerkoopOrders();
+        
+        echo "<label for='VerkoopOrder'>Choose a verkooporder:</label>";
+        echo "<select name='verkOrdId'>";
+        foreach ($lijst as $row) {
+            $selected = ($row_selected == $row["verkOrdId"]) ? "selected='selected'" : "";
+            echo "<option value='{$row['verkOrdId']}' $selected>Order {$row['verkOrdId']}</option>\n";
         }
+        echo "</select>";
     }
 
     /**
-     * Toon de verkooporders in een HTML-tabel.
+     * Toon de verkooporders in een HTML-tabel
      * @param array $lijst
-     * @return void
      */
     public function showTable(array $lijst): void {
-        $html = "<table>";
+        echo "<table>";
 
-        $html .= "<tr>
-                    <th>klantNaam</th>
-                    <th>artOmschrijving</th>
-                    <th>verkOrdDatum</th>
-                    <th>verkOrdBestAantal</th>
-                    <th>verkOrdStatus</th>
-                    <th>Acties</th>
-                  </tr>";
+        // Voeg de kolomnamen boven de tabel
+        echo "<tr>
+                <th>klantNaam</th>
+                <th>artNaam</th>
+                <th>verkOrdDatum</th>
+                <th>verkOrdBestAantal</th>
+                <th>verkOrdStatus</th>
+                <th>Acties</th>
+              </tr>";
 
         foreach ($lijst as $row) {
-            $html .= "<tr>";
-            $html .= "<td>" . htmlspecialchars($row["klantNaam"]) . "</td>";
-            $html .= "<td>" . htmlspecialchars($row["artOmschrijving"]) . "</td>";
-            $html .= "<td>" . htmlspecialchars($row["verkOrdDatum"]) . "</td>";
-            $html .= "<td>" . htmlspecialchars($row["verkOrdBestAantal"]) . "</td>";
-            $html .= "<td>" . htmlspecialchars($row["verkOrdStatus"]) . "</td>";
-
-            $html .= "<td>
+            echo "<tr>
+                    <td>" . htmlspecialchars($row["klantNaam"]) . "</td>
+                    <td>" . htmlspecialchars($row["artOmschrijving"]) . "</td>
+                    <td>" . htmlspecialchars($row["verkOrdDatum"]) . "</td>
+                    <td>" . htmlspecialchars($row["verkOrdBestAantal"]) . "</td>
+                    <td>" . htmlspecialchars($row["verkOrdStatus"]) . "</td>
+                    <td>
                         <form method='post' action='update.php?verkOrdId={$row["verkOrdId"]}'>
-                            <button name='update'>Wijzigen</button>
+                            <button name='update'>Wzg</button>
                         </form>
                         <form method='post' action='delete.php?verkOrdId={$row["verkOrdId"]}'>
-                            <button name='verwijderen'>Verwijderen</button>
+                            <button name='verwijderen' onclick='return confirm(\"Weet je zeker dat je deze verkooporder wilt verwijderen?\");'>Verwijderen</button>
                         </form>
-                      </td>";
-            $html .= "</tr>";
+                    </td>
+                  </tr>";
         }
-        $html .= "</table>";
-        echo $html;
+        echo "</table>";
     }
 
     /**
-     * Verwijder een verkooporder op basis van verkOrdId.
+     * Verwijder een verkooporder op basis van verkOrdId
      * @param int $verkOrdId
      * @return bool
      */
@@ -152,7 +140,7 @@ class VerkoopOrder extends Database {
     }
 
     /**
-     * Update een verkooporder.
+     * Update een verkooporder
      * @param array $row
      * @return bool
      */
@@ -167,7 +155,7 @@ class VerkoopOrder extends Database {
             $stmt->bindParam(':artId', $row['artId'], PDO::PARAM_INT);
             $stmt->bindParam(':verkOrdDatum', $row['verkOrdDatum'], PDO::PARAM_STR);
             $stmt->bindParam(':verkOrdBestAantal', $row['verkOrdBestAantal'], PDO::PARAM_INT);
-            $stmt->bindParam(':verkOrdStatus', $row['verkOrdStatus'], PDO::PARAM_INT);
+            $stmt->bindParam(':verkOrdStatus', $row['verkOrdStatus'], PDO::PARAM_STR);
             $stmt->execute();
             return true;
         } catch (PDOException $e) {
@@ -177,24 +165,23 @@ class VerkoopOrder extends Database {
     }
 
     /**
-     * Bepaal het volgende beschikbare verkOrdId.
+     * Bepaal het volgende beschikbare verkOrdId
      * @return int
      */
     private function BepMaxVerkOrdId(): int {
         try {
-            $sql = "SELECT MAX(verkOrdId) + 1 AS nextId FROM $this->table_name";
-            $nextId = self::$conn->query($sql)->fetchColumn();
-            return $nextId ? (int)$nextId : 1;
+            $sql = "SELECT COALESCE(MAX(verkOrdId), 0) + 1 AS next_id FROM $this->table_name";
+            return (int)self::$conn->query($sql)->fetchColumn();
         } catch (PDOException $e) {
             echo "Error: " . $e->getMessage();
-            return 1;
+            return 0;
         }
     }
-
+    
     /**
-     * Voeg een nieuwe verkooporder toe aan de database.
+     * Voeg een nieuwe verkooporder toe aan de database
      * @param array $verkoopordergegevens
-     * @return bool True als het invoegen succesvol is, anders False
+     * @return bool
      */
     public function insertVerkoopOrder(array $verkoopordergegevens): bool {
         try {
@@ -208,12 +195,12 @@ class VerkoopOrder extends Database {
             $stmt->bindParam(':artId', $verkoopordergegevens['artId'], PDO::PARAM_INT);
             $stmt->bindParam(':verkOrdDatum', $verkoopordergegevens['verkOrdDatum'], PDO::PARAM_STR);
             $stmt->bindParam(':verkOrdBestAantal', $verkoopordergegevens['verkOrdBestAantal'], PDO::PARAM_INT);
-            $stmt->bindParam(':verkOrdStatus', $verkoopordergegevens['verkOrdStatus'], PDO::PARAM_INT);
+            $stmt->bindParam(':verkOrdStatus', $verkoopordergegevens['verkOrdStatus'], PDO::PARAM_STR);
             $stmt->execute();
 
             self::$conn->commit();
             return true;
-        } catch (PDOException $e) {
+        } catch(PDOException $e) {
             self::$conn->rollBack();
             echo "Error: " . $e->getMessage();
             return false;

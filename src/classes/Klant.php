@@ -5,12 +5,9 @@ namespace Bas\classes;
 
 use PDO;
 use PDOException;
-use Bas\classes\Database;
 
 class Klant extends Database {
-    private string $table_name = "Klant";
-
-    // Methods
+    private $table_name = "Klant";
 
     /**
      * Haal alle klanten op uit de database mbv de method getKlanten()
@@ -18,7 +15,11 @@ class Klant extends Database {
      */
     public function crudKlant(): void {
         try {
-            $klanten = $this->getKlanten();
+            if (isset($_POST['search']) && !empty($_POST['klantNaam'])) {
+                $klanten = $this->searchKlanten($_POST['klantNaam']);
+            } else {
+                $klanten = $this->getKlanten();
+            }
             $this->showTable($klanten);
         } catch (PDOException $e) {
             echo "Error: " . $e->getMessage();
@@ -33,6 +34,25 @@ class Klant extends Database {
         try {
             $sql = "SELECT * FROM $this->table_name";
             $stmt = self::$conn->query($sql);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage();
+            return [];
+        }
+    }
+
+    /**
+     * Zoek klanten op basis van naam
+     * @param string $klantNaam
+     * @return array
+     */
+    public function searchKlanten(string $klantNaam): array {
+        try {
+            $sql = "SELECT * FROM $this->table_name WHERE klantNaam LIKE :klantNaam";
+            $stmt = self::$conn->prepare($sql);
+            $naam = '%' . $klantNaam . '%';
+            $stmt->bindParam(':klantNaam', $naam, PDO::PARAM_STR);
+            $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
         } catch (PDOException $e) {
             echo "Error: " . $e->getMessage();
@@ -62,17 +82,16 @@ class Klant extends Database {
      * Toon een dropdown met klanten
      * @param int $row_selected
      */
-    public function dropDownKlant(int $row_selected = -1): void {
+    public function dropDownKlant($row_selected = -1): void {
         try {
             $klanten = $this->getKlanten();
-            $html = "<label for='Klant'>Choose a klant:</label>";
-            $html .= "<select name='klantId'>";
+            echo "<label for='Klant'>Choose a klant:</label>";
+            echo "<select name='klantId'>";
             foreach ($klanten as $row) {
                 $selected = ($row_selected == $row["klantId"]) ? "selected='selected'" : "";
-                $html .= "<option value='{$row['klantId']}' $selected>{$row['klantNaam']} {$row['klantEmail']}</option>\n";
+                echo "<option value='{$row['klantId']}' $selected>{$row['klantNaam']} {$row['klantEmail']}</option>\n";
             }
-            $html .= "</select>";
-            echo $html;
+            echo "</select>";
         } catch (PDOException $e) {
             echo "Error: " . $e->getMessage();
         }
@@ -83,25 +102,41 @@ class Klant extends Database {
      * @param array $klanten
      */
     private function showTable(array $klanten): void {
-        $html = "<table>";
+        echo "<table>";
         if (!empty($klanten)) {
-            $html .= $this->getTableHeader(array_keys($klanten[0]));
+            echo $this->getTableHeader($klanten[0]);
             foreach ($klanten as $row) {
-                $html .= "<tr>";
-                $html .= "<td>{$row['klantNaam']}</td>";
-                $html .= "<td>{$row['klantEmail']}</td>";
-                $html .= "<td>{$row['klantWoonplaats']}</td>";
-                $html .= "<td>{$row['klantAdres']}</td>";
-                $html .= "<td>{$row['klantPostcode']}</td>";
-                $html .= "<td><form method='post' action='update.php?klantId={$row['klantId']}'><button name='update'>Wzg</button></form></td>";
-                $html .= "<td><form method='post' action='delete.php?klantId={$row['klantId']}'><button name='verwijderen'>Verwijderen</button></form></td>";
-                $html .= "</tr>";
+                echo "<tr>";
+                echo "<td>{$row['klantNaam']}</td>";
+                echo "<td>{$row['klantEmail']}</td>";
+                echo "<td>{$row['klantWoonplaats']}</td>";
+                echo "<td>{$row['klantAdres']}</td>";
+                echo "<td>{$row['klantPostcode']}</td>";
+                echo "<td><form method='post' action='update.php?klantId={$row['klantId']}'><button name='update'>Wzg</button></form></td>";
+                echo "<td><form method='post' action='delete.php?klantId={$row['klantId']}'><button name='verwijderen' onclick='return confirm(\"Weet je zeker dat je deze klant wilt verwijderen?\");'>Verwijderen</button></form></td>";
+                echo "</tr>";
             }
         } else {
-            $html .= "<tr><td colspan='7'>Geen klanten gevonden</td></tr>";
+            echo "<tr><td colspan='7'>Geen klanten gevonden</td></tr>";
         }
-        $html .= "</table>";
-        echo $html;
+        echo "</table>";
+    }
+
+    /**
+     * Genereer de table header op basis van de kolomnamen
+     * @param array $row
+     * @return string
+     */
+    private function getTableHeader(array $row): string {
+        $header = "<tr>";
+        foreach (array_keys($row) as $key) {
+            if ($key !== "klantId") {
+                $header .= "<th>" . htmlspecialchars($key) . "</th>";
+            }
+        }
+        $header .= "<th>Acties</th>";
+        $header .= "</tr>";
+        return $header;
     }
 
     /**
@@ -123,7 +158,7 @@ class Klant extends Database {
     }
 
     /**
-     * Update een klantgegevens
+     * Update klantgegevens
      * @param array $row
      * @return bool
      */
@@ -154,12 +189,11 @@ class Klant extends Database {
      */
     private function BepMaxKlantId(): int {
         try {
-            $sql = "SELECT MAX(klantId) + 1 AS nextId FROM $this->table_name";
-            $nextId = self::$conn->query($sql)->fetchColumn();
-            return $nextId ? (int)$nextId : 1;
+            $sql = "SELECT COALESCE(MAX(klantId), 0) + 1 AS next_id FROM $this->table_name";
+            return (int)self::$conn->query($sql)->fetchColumn();
         } catch (PDOException $e) {
             echo "Error: " . $e->getMessage();
-            return 1;
+            return 0;
         }
     }
 
@@ -189,20 +223,6 @@ class Klant extends Database {
             echo "Error: " . $e->getMessage();
             return false;
         }
-    }
-
-    /**
-     * Genereer de tabelkop voor de HTML-tabel
-     * @param array $columns Kolomnamen
-     * @return string
-     */
-    private function getTableHeader(array $columns): string {
-        $header = "<tr>";
-        foreach ($columns as $column) {
-            $header .= "<th>{$column}</th>";
-        }
-        $header .= "<th>Acties</th></tr>";
-        return $header;
     }
 }
 ?>

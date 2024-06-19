@@ -1,28 +1,30 @@
 <?php
 // Auteur: Ayoub
-// Functie: Insert
+// Functie: Insert Verkooporder
 
+// Autoloader classes via composer
 require '../../vendor/autoload.php';
 use Bas\classes\Klant;
 use Bas\classes\Artikel;
-use Bas\classes\VerkoopOrder;
+use Bas\classes\VerkoopOrder; // Gebruik juiste class naam VerkoopOrder met hoofdletter O
 
 $message = "";
 
 // Maak nieuwe objecten aan
 $klant = new Klant();
 $artikel = new Artikel();
-$verkooporder = new VerkoopOrder();
+$verkooporder = new VerkoopOrder(); // Gebruik juiste class naam VerkoopOrder met hoofdletter O
 
 $klanten = $klant->getKlanten(); // Hier wordt de getKlanten methode opgeroepen
 $artikelen = $artikel->getArtikelen();
 
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["insert"]) && $_POST["insert"] === "Toevoegen") {
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["insert"]) && $_POST["insert"] == "Toevoegen") {
     $requiredFields = [
         'klantId', 'artId', 'verkOrdDatum', 'verkOrdBestAantal', 'verkOrdStatus'
     ];
     $isFormValid = true;
 
+    // Controleer of alle vereiste velden zijn ingevuld
     foreach ($requiredFields as $field) {
         if (empty($_POST[$field])) {
             $isFormValid = false;
@@ -37,9 +39,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["insert"]) && $_POST["i
             'artId' => intval($_POST['artId']),
             'verkOrdDatum' => $_POST['verkOrdDatum'],
             'verkOrdBestAantal' => intval($_POST['verkOrdBestAantal']),
-            'verkOrdStatus' => intval($_POST['verkOrdStatus'])
+            'verkOrdStatus' => $_POST['verkOrdStatus']
         ];
 
+        // Voeg de verkooporder toe via de insertVerkoopOrder methode
         if ($verkooporder->insertVerkoopOrder($verkoopordergegevens)) {
             $message = "Verkooporder succesvol toegevoegd!";
         } else {
@@ -52,7 +55,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["insert"]) && $_POST["i
 ?>
 
 <!DOCTYPE html>
-<html lang="nl">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -63,7 +66,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["insert"]) && $_POST["i
 
     <h1>Verkooporder</h1>
     <h2>Toevoegen</h2>
-    <?php if ($message): ?>
+    <?php if (!empty($message)): ?>
         <p><?php echo htmlspecialchars($message); ?></p>
     <?php endif; ?>
     <form method="post">
@@ -91,12 +94,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["insert"]) && $_POST["i
         <input type="number" id="verkOrdBestAantal" name="verkOrdBestAantal" required/>
         <br>
         <label for="verkOrdStatus">Verkooporder Status:</label>
-        <input type="number" id="verkOrdStatus" name="verkOrdStatus" required/>
+        <select name="verkOrdStatus" required>
+            <option value="Verzonden">Verzonden</option>
+            <option value="Niet Verzonden">Niet Verzonden</option>
+            <option value="Onderweg">Onderweg</option>
+        </select>
         <br><br>
         <input type="submit" name="insert" value="Toevoegen">
-    </form>
-    <br>
-    <a href='read.php'>Terug</a>
+    </form><br>
+
+    <a href="read.php">Terug</a>
 
 </body>
 </html>
